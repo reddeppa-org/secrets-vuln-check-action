@@ -6,14 +6,15 @@ inputs:
     type: string
   repo_name:
     required: true
-    type: string
-
-  secrets:
-    pat_token:
-      required: true
+    type: string  
+  pat_token:
+    description: GitHub Token
+    required: true
 runs:
   using: 'composite'
   steps:
+  env:
+    GH_TOKEN:: ${{ inputs.pat_token }}
     - run: |
           echo "Checking secret scanning alerts..."
 
