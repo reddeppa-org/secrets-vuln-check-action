@@ -1,0 +1,31 @@
+name: Secret Scan
+description: Custom GitHub Action to Scan Secret Alerts
+inputs:
+  repo_owner:
+    required: true
+    type: string
+  repo_name:
+    required: true
+    type: string
+
+  secrets:
+    pat_token:
+      required: true
+runs:
+  using: 'composite'
+  steps:
+    - run: |
+          echo "Checking secret scanning alerts..."
+
+          gh api -X get "repos/${{ inputs.repo_name }}/secret-scanning/alerts" --paginate -H "Accept: application/vnd.github+json" -F state=open --jq '.' > secret_alerts.json
+
+          # curl -s -H "Authorization: Bearer ${{ secrets.pat_token }}" \
+          #   "https://api.github.com/repos/${{ inputs.repo_owner }}/${{ inputs.repo_name }}/secret-scanning/alerts?state=open" \
+          #   | jq '[.[]]' > secret_alerts.json
+
+          count=$(jq length secret_alerts.json)
+          echo "Found $count open secret scanning alerts"
+          if [ "$count" -gt 0 ]; then
+            echo "❌ Failing due to secret leaks"
+            exit 1
+          fi
